@@ -1,0 +1,12 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+
+Name: OSB-JSCore
+Description: OSB EcmaScript engine 
+Version: @VERSION@
+Requires: 
+Libs: -L${libdir} -ljscore
+Cflags: -I${includedir}/osb/

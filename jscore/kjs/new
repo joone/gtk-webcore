@@ -1,0 +1,22 @@
+#ifndef javascriptcore_new
+#define javascriptcore_new
+
+inline void* operator new(size_t s, void* p) throw() 
+{ 
+    return p; 
+}
+
+inline void* operator new[](size_t s, void* p) throw() 
+{ 
+    return p; 
+}
+ 
+inline void  operator delete  (void*, void*) throw() 
+{ 
+};
+
+inline void  operator delete[](void*, void*) throw() 
+{ 
+};
+
+#endif
