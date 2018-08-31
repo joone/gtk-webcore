@@ -1,0 +1,75 @@
+dnl Process this file with autoconf to produce a configure script.
+
+AC_INIT(osb-browser, 0.5.0)
+AC_CONFIG_SRCDIR(src/main.c)
+AM_INIT_AUTOMAKE
+
+AM_CONFIG_HEADER(config.h)
+AC_PROG_LIBTOOL
+AM_PROG_CC_STDC
+AC_PROG_CXX
+AM_PROG_LEX
+AC_PROG_YACC
+AC_HEADER_STDC
+AC_HEADER_STAT
+AC_HEADER_TIME
+AC_CHECK_HEADERS(alloca.h vfork.h)
+AC_CHECK_HEADERS(string.h strings.h float.h fnmatch.h limits.h paths.h sys/cdefs.h sys/mman.h sys/param.h sys/select.h sys/socket.h)
+AC_CHECK_FUNCS(memcpy memmove gettimeofday mkstemps mkstemp random setegid seteuid socket unsetenv vsnfprintf)
+
+dnl check common gtk modules
+PKG_CHECK_MODULES(PACKAGE, [gtk+-2.0 >= 2.2.0, gdk-pixbuf-2.0 >= 2.2.0, glib-2.0 >= 2.2.0, libglade-2.0])
+
+dnl check X modules
+AC_PATH_XTRA
+
+dnl debugging info commandline argument
+use_debug=
+AC_ARG_ENABLE([debug], 
+  AC_HELP_STRING([--enable-debug], [enable debug mode (default:disabled)]),
+  use_debug=true,,)
+
+if test -n "$use_debug"; then 
+   CPPFLAGS="$CPPFLAGS -DDEBUG" 
+else
+   CPPFLAGS="$CPPFLAGS -DNDEBUG"
+fi  
+
+dnl check for OSB JSCore
+PKG_CHECK_MODULES(JSCORE, [osb-jscore])
+
+dnl check for OSB NRCore
+PKG_CHECK_MODULES(NRCORE, [osb-nrcore])
+PKG_CHECK_MODULES(NRCIT, [osb-nrcit])
+
+NRCORE_CFLAGS="$NRCORE_CFLAGS $NRCIT_CFLAGS"
+NRCORE_LIBS="$NRCORE_LIBS $NRCIT_LIBS"
+dnl TODO: Try to link against NRCore and JSCore, to see if they really work
+
+DEFINES="-DG_DISABLE_DEPRECATED -DGDK_PIXBUF_DISABLE_DEPRECATED -DGTK_DISABLE_DEPRECATED"
+DEFINES="$DEFINES -DNDEBUG"
+
+dnl Use -Wall if we have gcc.
+changequote(,)dnl
+if test "x$GCC" = "xyes"; then
+  case " $CFLAGS " in
+  *[\ \	]-Wall[\ \	]*) ;;
+  *) CFLAGS="$CFLAGS -Wall -Werror -ansi -pedantic" ;;
+  esac
+fi
+changequote([,])dnl
+
+CXXFLAGS="$CXXFLAGS -fno-exceptions -fno-rtti -nostdinc++"
+CPPFLAGS="$CPPFLAGS $PACKAGE_CFLAGS $X_CFLAGS $NRCORE_CFLAGS $JSCORE_CFLAGS $HILDON_CFLAGS $DEFINES"
+
+LDFLAGS="$LDFLAGS $LDFLAGS -nodefaultlibs -lgcc -lc"
+LDFLAGS="$LDFLAGS $PACKAGE_LIBS $X_LIBS $NRCORE_LIBS $JSCORE_LIBS $HILDON_LIBS"
+
+
+AC_OUTPUT([
+Makefile
+ui/Makefile
+src/Makefile
+pixmaps/Makefile
+])
+

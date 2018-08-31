@@ -1,0 +1,99 @@
+Sample Browser for OSB - osb-browser
+----------------------------------------------------------------
+
+ osb-browser is a simple browser for GTK widget toolkit. It is
+ demonstration / test browser using  OSB Gtk API.
+
+ The OSB Gtk API comes with NRCore -library, and it's located in
+ gtkapi/ -subdirectory of NRCore source directory. 
+
+
+ Directory Structure
+ -------------------
+
+ ui/
+  -Glade-2 xml description of the user interface
+ pixmaps/
+  -Pixmaps the browser user interface uses
+ src/
+  -Sources for the osb-browser
+
+
+Build Instructions
+------------------
+
+   1. Build and install OSB (libcurl, javascriptcore and nrcore)
+   
+   2. Install libglade2 and libglade2 development headers if not present at the system:
+      Example (for linox. requres root access):
+      # apt-get install libglade2 libglade2-devel
+
+   2. Download latest version osb-browser from
+      http://browser.research.nokia.com/
+
+      Example:
+      % wget http://browser.research.nokia.com/osb-browser-0.4.7b.tar.gz
+
+   3. Unpack it 
+      Example:
+      %  tar xfz osb-browser-0.4.7b.tar.gz
+
+   4. Configure it with 'configure', 
+
+      Example:
+      % ./configure
+
+   5. Build it with make and install it
+      Example:
+      % make && make install
+
+   6. Run it
+      Example:
+      % osb-browser http://www.nokia.fi
+
+
+Code details
+-----------
+
+The code is in ANSI C, and it utilizes GObject type system to
+enable object oriented programming.
+
+Class Hierarchy
+---------------
+
+Glib classes:
+     GtkWindow
+	OsbBrowser
+
+   
+User Interface
+--------------
+ The ui is built with Glade-2, a visual user interface builder for
+ GTK. Glade-2 saves the ui description to a xml file. libglade2
+ -library is used to build the interface from the xml file 
+ runtime.
+
+  
+NOTES
+-----
+  The browser itself is not intended to be used as a starting point for a
+  real browser project, so its interfaces aren't documented. It is however intended
+  to be introduction how to use the OSB GTK API. The OSB GTK API
+  related code fragments are easily located from osb-browser.c and
+  callbacks.c -files by searching for "khtml" strings. Those fragments
+  show how to use the library in a manner that separates the browser
+  from the html rendering engine.
+
+
+This piece of software is part of OSB project.
+Our team is:
+ Antti Koivisto <antti.j.koivisto@nokia.com>
+ Kimmo Kinnunen <kimmo.t.kinnunen@nokia.com>
+ Petri Salmi    <petri.salmi@nokia.com>
+   
+
+Contact
+-------
+
+ Comments, bugs and everything concerning osb-browser are welcome:
+ Kimmo Kinnunen <kimmo.t.kinnunen@nokia.com>
