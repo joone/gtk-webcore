@@ -1,0 +1,26 @@
+#ifndef kwq_new_
+#define kwq_new_
+
+// #include <stdlib.h> included in WebCorePrefix.h
+
+namespace std {
+
+enum NewArgsNoThrow{
+     nothrow
+};	 
+
+}
+
+inline void* operator new(size_t s, std::NewArgsNoThrow a) throw() 
+{ 
+  return operator new(s);
+}
+
+inline void* operator new[](size_t s, std::NewArgsNoThrow a) throw() 
+{ 
+  return operator new[](s); 
+}
+
+// AtomicString placement new when avoiding static constructors
+inline void* operator new(size_t s,  void* (*ptr)[1]){ return ptr;}
+#endif

@@ -1,0 +1,259 @@
+	OSB: NRC Open Source Browser based on KHTML and WebCore
+
+OSB software distribution is a browser component and a sample browser
+made in OSB-project at NRC <insert group here> OSB stands for Open
+Source Browser.
+
+The information here is partially outdated
+
+
+You need:
+    - OSB source distribution (osb-jscore, osb-nrcore, osb-browser)
+    - one of these:
+      - Sofia wengine from http://iptel.research.nokia.com/sofia/ 
+      - curl from http://curl.haxx.se, more recent than 7.11.0
+    - libxml2 more recent than 2.6.0
+
+
+
+BUILDING OSB
+------------
+	To build OSB follow the instructions below.
+	In the text lines beginning with  % are commands to be
+	executed. Lines beginning with # are comments
+
+		
+
+Build sofia-wengine
+--------------------
+	* Fetch and unpack sofia-wengine 
+
+	You can use one available from
+	http://isource.nokia.com/project/showfiles.php?group_id=29
+	The sofiawe-1.9.7 is not available from the offical site
+	at the moment, though.	
+
+	You can also use our unoffical package from
+	http://browser.research.nokia.com/
+
+% wget http://browser.research.nokia.com/downloads/sofiawe-1.9.7.tar.gz
+% tar xfz sofiawe-1.9.7.tar.gz
+  
+	* Configure and build sofia-wengine
+
+% cd sofia-1.9.7
+% ./configure
+% make && make install
+% cd ..
+       If you want to install sofia to some other directory, provide
+       ./configure with "--prefix=$YOUR_PREFIX   --exec-prefix=$YOUR_PREFIX"
+       where YOUR_PREFIX is the prefix you want to use, for example
+       $HOME. Additionally you need to "make install" differently:
+
+% make && make install m4dir=$YOUR_PREFIX/share/aclocal
+
+
+Build OSB
+---------
+        Most current release is 0.4.7b. Substitute $RELVER with it.
+
+
+        * Get following files from http://browser.research.nokia.com/:
+	
+	 http://browser.research.nokia.com/osb-jscore-$RELVER.tar.gz
+	 http://browser.research.nokia.com/osb-nrcore-$RELVER.tar.gz
+	 http://browser.research.nokia.com/osb-browser-$RELVER.tar.gz
+
+% export RELVER="0.4.X"
+% wget http://browser.research.nokia.com/osb-jscore-$RELVER.tar.gz
+% wget http://browser.research.nokia.com/osb-nrcore-$RELVER.tar.gz
+% wget http://browser.research.nokia.com/osb-browser-$RELVER.tar.gz
+
+
+       * Unpack the files. 
+
+% mkdir osbf 
+% cd osbf
+% tar xfz ../osb-jscore-$RELVER.tar.gz
+% tar xfz ../osb-nrcore-$RELVER.tar.gz
+% tar xfz ../osb-browser-$RELVER.tar.gz
+
+
+	* Build JavaScriptCore, the javascript interpreter
+
+% cd osb-jscore-$RELVER
+% ./configure 
+% make && make install
+% cd ..
+	This builds JavaScriptCore and installs it to prefix
+	/usr/local by default. If you want to install it to 
+	different location, use "--prefix=/your/dir --exec-prefix=/your/dir "
+	-flags after the ./configure command
+
+
+	* Build Osb-Nrcore the actual html rendering engine
+
+% cd osb-nrcore-$RELVER
+% ./configure  
+% make && make install
+% cd ..     
+	This builds Osb-Nrcore and installs it to /usr. It uses
+	JavaScriptCore from directory /usr. If you installed
+	JavaScriptCore with different prefix, and pkg-config can't
+	find it you must provide pkg-config with the path of your own.
+	This is most probable if the prefix is different than  /usr or /usr/local
+	In this case, you need to use  command
+	
+% export  PKG_CONFIG_PATH=/your/dir"
+	
+	 before the ./configure command.
+
+	If you don't have sofia-wengine installed in a standard prefix,
+	you also need to provide flag
+	"--with-sofia=$YOUR_PREFIX" to ./configure, where
+	LIBCURL_PREFIX is set to your defined prefix. 
+
+	* Build sample browser which uses OSB (osb-browser)	
+
+% cd osb-browser-$RELVER
+% ./configure  
+% make && make install
+% cd ..
+	This builds osb-browser and installs
+	osb-browser executable into /usr/bin.
+	To install the program in your own prefix, use flags
+	"--prefix=/your/dir --exec-prefix=/your/dir"
+	
+	./configure tries to figure out where your OSB installation is, eg.
+	what are the Osb-Nrcore & JavaScriptCore prefixes. If Osb-Nrcore
+	was not installed with and standard prefix (/usr or /usr/local) 
+	you need to provide pkg-config with the configuration path,
+	with PKG_CONFIG_PATH -variable like above.	
+
+Installed files
+---------------
+	After installation procedure you should have:
+	Runnable binary installed in
+	  /usr/bin/osb-browser
+
+	Libraries installed in
+	  /usr/lib/libjscore.*	  # javascript engine
+	  /usr/lib/libkwiq_gtk.*	  # gtk implementation of QT widgets
+	  /usr/lib/libkwiq_khtml.*  # rendering engine
+	  /usr/lib/libkhtml_gtkapi.* # gtk api for osb
+
+	Headers installed in 
+	  /usr/include/osb/JavaScriptCore
+          /usr/include/osb/Osb-Nrcore
+			     
+	Program Data in
+	  /usr/share/osb/*.css	  #default stylesheets
+
+	OSB configuration definition for pkg-config
+	  /usr/lib/pkgconfig/osb-jscore.pc
+	  /usr/lib/pkgconfig/osb-osb-nrcore.pc
+	
+	If you have installed packages with different prefixes, paths
+	may vary.
+
+Using OSB in your own program
+-----------------------------
+	
+	Since 0.4.2, NRCore uses pkg-config program for configuration
+	of other programs using it.
+
+	pkg-config is standard build tool for gtk applications. Its
+	purpose is to 
+	  - find installed library (paths)
+	  - determine the depends of the library
+	  - determine version of the library
+	  - determine compilation cflags needed for a program to be
+	    compiled to use the library
+	  - determine link flags needed for a program to be
+	    linked to use the library
+	  - provide additional information that might be needed, like
+	    features compiled in the library
+
+	
+	To compile with OSB add following to your compile statement
+           `pkg-config osb-jscore --cflags` `pkg-config osb-nrcore --cflags` 
+
+	To link against OSB add following to your link statement
+           `pkg-config osb-jscore --libs` `pkg-config osb-nrcore --libs` 
+
+	Alternatively, if you use autoconf, you can use following
+	snipet in your cońfigure.in
+--	
+	# Check for pkg-config
+	AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
+	if test $PKG_CONFIG = no; then
+	   AC_MSG_ERROR([Cannot find pkg-config, make sure it is installed and in your PATH])
+	fi
+
+	PKG_CHECK_MODULES(JSCORE, [osb-jscore >= 0.4.2])
+	PKG_CHECK_MODULES(NRCORE, [osb-nrcore >= 0.4.2]) 
+--
+	These commands define variables
+	  JSCORE_CFLAGS
+	  JSCORE_LIBS
+	  NRCORE_CFLAGS
+	  NRCORE_LIBS 
+
+	which can be used for example in following way later on in
+	configure.in:
+
+--
+	CPPFLAGS="$CPPFLAGS $JSCORE_CFLAGS $NRCORE_CFLAGS"
+	LDFLAGS="$LDFLAGS $JSCORE_LIBS $NRCORE_LIBS"
+--
+
+	NOTE.
+        If you have installed OSB in different path than the default 
+	( which is usually /usr/), you need to inform pkg-config where
+	to find installed configuration files. This is done by setting
+	PKG_CONFIG_PATH environment variable
+
+
+	Example: installing OSB to $HOME directory
+
+	JavaScripCore configuration in 'osb-jscore-0.4.7b/' directory:
+	% ./configure --exec-prefix=$HOME --prefix=$HOME
+	% make && make install
+
+	NRCore configuration in 'osb-nrcore-0.4.7b/' directory
+	% export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$HOME/lib/pkgconfig/
+	% ./configure --exec-prefix=$HOME --prefix=$HOME 
+	% make && make install
+	
+	
+	
+Implemented features
+--------------------
+
+Engine supports:
+       -Web standards (JavaScript,css,html4 etc)
+       -Some widgets (though usually misplaced)
+       -JavaScript, popups
+       -HTTP GET works 
+
+Known problems
+      - Stoping of http requests is not handled at all, 
+       -HTTP POST only partly implemented
+
+
+      
+If you come across a crash or other bug, please send them to us. With crashes,
+it'd be better to send stack trace and/or a short description of what you were 
+doing rather than .core file. There are many known segfaults.
+
+If you have problems, we are more than glad to help you. Just send us email etc.
+
+Best Regards,
+ Antti Koivisto <antti.j.koivisto@nokia.com>
+ Kimmo Kinnunen <kimmo.t.kinnunen@nokia.com>
+ Petri Salmi    <petri.salmi@nokia.com>
+
+
+    References:
+     -KDE (KHTML is part of KDE): http://developer.kde.org/	
+     -WebCore: http://developer.apple.com/darwin/projects/webcore/index.html

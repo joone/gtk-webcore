@@ -1,0 +1,6 @@
+/*
+* Hildon has big fonts, but webpages don't like it
+*/
+INPUT[type="button"]{
+ 	font: 12pt arial bold;	
+}

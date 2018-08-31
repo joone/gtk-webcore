@@ -1,0 +1,142 @@
+dnl Process this file with autoconf to produce a configure script.
+
+AC_INIT(osb-nrcore, 0.5.0)
+AC_CONFIG_SRCDIR(kwiq/KWQString.cpp)
+AM_INIT_AUTOMAKE
+
+AM_CONFIG_HEADER(config.h)
+AC_PROG_LIBTOOL
+AM_PROG_CC_STDC
+AC_PROG_CXX
+AM_PROG_LEX
+AC_PROG_YACC
+AC_HEADER_STDC
+AC_HEADER_STAT
+AC_HEADER_TIME
+AC_CHECK_HEADERS(alloca.h vfork.h)
+AC_CHECK_HEADERS(string.h strings.h float.h fnmatch.h limits.h paths.h sys/cdefs.h sys/mman.h sys/param.h sys/select.h sys/socket.h)
+AC_CHECK_FUNCS(memcpy memmove gettimeofday mkstemps mkstemp random setegid seteuid socket unsetenv vsnfprintf)
+
+# Check for pkg-config
+AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
+if test $PKG_CONFIG = no; then
+   AC_MSG_ERROR([Cannot find pkg-config, make sure it is installed and in your PATH])
+fi
+
+dnl check common gtk modules
+PKG_CHECK_MODULES(PACKAGE, [gtk+-2.0 >= 2.2.0, gdk-pixbuf-2.0 >= 2.2.0, glib-2.0 >= 2.2.0, libxml-2.0 >= 2.6.0])
+
+dnl check for X libraries
+AC_PATH_XTRA
+X_LIBS="-lXt $X_LIBS"
+
+dnl check miscellaneous functions
+OSB_HAVE_INFINITE
+OSB_HAVE_ISNAN
+OSB_HAVE_ISINF
+
+dnl debugging info commandline argument
+use_debug=
+AC_ARG_ENABLE([debug], 
+  AC_HELP_STRING([--enable-debug], [enable debug mode (default:disabled)]),
+  use_debug=true,,)
+
+if test -n "$use_debug"; then 
+   CPPFLAGS="$CPPFLAGS -DDEBUG" 
+else
+   CPPFLAGS="$CPPFLAGS -DNDEBUG"
+fi  
+
+dnl check for jscore
+
+AC_ARG_WITH([javascriptcore-prefix],
+	AC_HELP_STRING([--with-javascriptcore-prefix],
+		       [use javascriptcore prefix (default: $jscore_prefix)]))
+
+
+if test -n "$with_javascriptcore_prefix"; then
+   AC_MSG_CHECKING([for jscore (pkg-config overrided)])
+   jscore_prefix=$with_javascriptcore_prefix
+   if test "$jscore_prefix/lib/libjscore.la" && test -f $jscore_prefix/include/osb/JavaScriptCore/object.h; then	
+      AC_MSG_RESULT([found. Using prefix $jscore_prefix])
+      JSCORE_ENABLE=yes
+      AC_SUBST(JSCORE_ENABLE)	
+      JSCORE_LIBS="-L$jscore_prefix/lib -ljscore"	
+      JSCORE_PREFIX="$jscore_prefix"
+      JSCORE_CFLAGS="-I$jscore_prefix/include/osb/"
+   else
+     AC_MSG_ERROR([JavaScriptCore not found. Use --with-javascriptcore-prefix=PREFIX])
+   fi
+else
+   PKG_CHECK_MODULES(JSCORE, [osb-jscore >= 0.4.0])
+   JSCORE_ENABLE="yes"
+   AC_SUBST(JSCORE_ENABLE)
+fi
+
+AC_SUBST(JSCORE_LIBS)
+AC_SUBST(JSCORE_PREFIX)
+AC_SUBST(JSCORE_CFLAGS)
+
+
+DEFINES="-DG_DISABLE_DEPRECATED -DGDK_PIXBUF_DISABLE_DEPRECATED -DGTK_DISABLE_DEPRECATED"
+DEFINES="$DEFINES -DAPPLE_CHANGES -DKWIQ -DKWIQ -DKHTML_NO_EXCEPTIONS -DKWIQ_NO_JAVA"
+
+dnl Use -Wall if we have gcc.
+changequote(,)dnl
+if test "x$GCC" = "xyes"; then
+  case " $CFLAGS " in
+  *[\ \	]-Wall[\ \	]*) ;;
+  *) CFLAGS="$CFLAGS -Wall " ;;
+  esac
+  case " $CXXFLAGS " in
+  *[\ \	]-Wall[\ \	]*) ;;
+  *) CXXFLAGS="$CXXFLAGS -Wall " ;;
+  esac
+fi
+changequote([,])dnl
+
+#
+# substitutions for osb-config
+#
+if test "x$prefix" = "xNONE"; then
+   nrcore_prefix=$ac_default_prefix
+else
+   nrcore_prefix=$prefix
+fi
+
+NRCORE_LIBS="-L$libdir -lkwiq_khtml -lkwiq_gtk $LIBCURL_LIBS"
+NRCORE_PREFIX="$nrcore_prefix"
+NRCORE_CFLAGS="-I$nrcore_prefix/include/osb/NRCore $LIBCURL_CFLAGS"
+AC_SUBST(NRCORE_LIBS)
+AC_SUBST(NRCORE_PREFIX)
+AC_SUBST(NRCORE_CFLAGS)
+
+
+AC_SUBST(LIBCURL_LIBS) #needed by the osb-nrcore.pc.in
+
+
+CXXFLAGS="$CXXFLAGS -fno-exceptions -fno-rtti -nostdinc++"
+
+CPPFLAGS="$CPPFLAGS -include \"\$(top_srcdir)/WebCorePrefix.h\" $PACKAGE_CFLAGS $X_CFLAGS $JSCORE_CFLAGS $DEFINES"
+LDFLAGS="$LDFLAGS $PACKAGE_LIBS $X_LIBS $JSCORE_LIBS \
+-nodefaultlibs -lgcc -lc"
+
+
+
+AC_OUTPUT([
+Makefile
+osb-nrcore.pc
+kwiq/Makefile
+khtml/Makefile
+khtml/css/Makefile
+khtml/dom/Makefile
+khtml/ecma/Makefile
+khtml/editing/Makefile
+khtml/html/Makefile
+khtml/xml/Makefile
+khtml/misc/Makefile
+khtml/rendering/Makefile
+data/Makefile
+ForwardingHeaders/Makefile
+Resources/Makefile
+])
